@@ -1,0 +1,14 @@
+{
+  "name": "Avalin Cargo",
+  "short_name": "Avalin",
+  "description": "Avalin Express Cargo — доставка из Китая в Таджикистан",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0A1A4A",
+  "theme_color": "#0A1A4A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/avalin.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/img/avalin-mark.webp", "sizes": "640x581", "type": "image/webp", "purpose": "any" }
+  ]
+}
