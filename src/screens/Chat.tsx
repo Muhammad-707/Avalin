@@ -100,8 +100,8 @@ export default function Chat() {
       </div>
 
       <div className="chat-bar">
-        <div className="chat-input">
-          <button className="copy-btn" onClick={() => fileRef.current?.click()} aria-label={t("chat_attach")} title={t("chat_attach")}>
+        <div className="composer">
+          <button className="cmp-btn cmp-attach" onClick={() => fileRef.current?.click()} aria-label={t("chat_attach")} title={t("chat_attach")}>
             <Icon name="clip" size={19} />
           </button>
           <input
@@ -120,10 +120,10 @@ export default function Chat() {
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder={t("chat_placeholder")}
           />
+          <button className={`cmp-btn cmp-send ${text.trim() ? "on" : ""}`} onClick={() => send()} aria-label="send">
+            <Icon name="send" size={18} stroke={2.2} />
+          </button>
         </div>
-        <button className={`send-btn ${text.trim() ? "on" : ""}`} onClick={() => send()} aria-label="send">
-          <Icon name="send" size={19} />
-        </button>
       </div>
     </div>
   );

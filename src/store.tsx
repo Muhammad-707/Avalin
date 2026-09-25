@@ -157,13 +157,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const pushToast = useCallback(
-    (item: Omit<ToastItem, "id">, ms = 2600) => {
+    (item: Omit<ToastItem, "id">) => {
       const id = ++tid.current;
-      // keep at most 3 on screen
+      // toasts stay until swiped away; keep at most 3 on screen
       setToasts((p) => [...p.slice(-2), { ...item, id }]);
-      setTimeout(() => dismissToast(id), ms);
     },
-    [dismissToast],
+    [],
   );
 
   const toast = useCallback(
@@ -186,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         read: false,
       };
       setS((p) => ({ ...p, notifs: [n, ...p.notifs] }));
-      pushToast({ kind: "push", icon: "bell", title: n.title, msg: n.body }, 5200);
+      pushToast({ kind: "push", icon: "bell", title: n.title, msg: n.body });
     }, 4500);
     return () => clearTimeout(timer);
   }, [s.registered, s.lang, pushToast]);

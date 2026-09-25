@@ -39,7 +39,7 @@ export type Marketplace = {
 
 /* official app icons (App Store) */
 export const MARKETPLACES: Marketplace[] = [
-  { id: "pinduoduo", name: "Pinduoduo", logo: "/img/mp/pinduoduo.png", url: "https://mobile.yangkeduo.com" },
+  { id: "pinduoduo", name: "Pinduoduo", logo: "/img/mp/pinduoduo.png?v=3", url: "https://mobile.yangkeduo.com" },
   { id: "1688", name: "1688", logo: "/img/mp/1688.jpg", url: "https://m.1688.com" },
   { id: "taobao", name: "Taobao", logo: "/img/mp/taobao.jpg", url: "https://m.taobao.com" },
   { id: "poizon", name: "Poizon", logo: "/img/mp/poizon.jpg", url: "https://www.dewu.com" },

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon, { type IconName } from "./Icon";
@@ -102,10 +102,12 @@ export function BottomNav() {
 export function UserAvatar({ size, onClick }: { size?: "lg"; onClick?: () => void }) {
   const { s } = useApp();
   const initials = ((s.user.firstName?.[0] ?? "") + (s.user.lastName?.[0] ?? "")).toUpperCase();
+  // plain span when not clickable, so it can sit inside other buttons
+  const Tag = onClick ? "button" : "span";
   return (
-    <button className={`avatar ${size ?? ""}`} onClick={onClick} aria-label={s.user.name}>
+    <Tag className={`avatar ${size ?? ""}`} onClick={onClick} aria-label={s.user.name}>
       {s.user.avatar ? <img src={s.user.avatar} alt="" /> : initials || <Icon name="user" size={24} />}
-    </button>
+    </Tag>
   );
 }
 
@@ -187,6 +189,57 @@ export function Sheet({
 
 /* ---------------------------------------------------------------- toasts */
 
+/* a toast stays on screen until it is flicked left or right, like a phone notification */
+function SwipeToast({ onGone, onTap, children }: { onGone: () => void; onTap?: () => void; children: ReactNode }) {
+  const [dx, setDx] = useState(0);
+  const [out, setOut] = useState(0); // -1 / 1 once flung away
+  const drag = useRef<{ x: number; y: number; t: number; id: number; moved: boolean } | null>(null);
+
+  const end = (x: number) => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    const dist = x - d.x;
+    const speed = Math.abs(dist) / Math.max(1, performance.now() - d.t);
+    if (Math.abs(dist) > 90 || (Math.abs(dist) > 30 && speed > 0.5)) {
+      setOut(dist > 0 ? 1 : -1);
+      setTimeout(onGone, 260);
+    } else {
+      setDx(0);
+      if (!d.moved) onTap?.();
+    }
+  };
+
+  return (
+    <div
+      className={`toast-swipe ${drag.current ? "dragging" : ""}`}
+      style={{
+        transform: out ? `translateX(${out * 130}%)` : `translateX(${dx}px) rotate(${dx / 40}deg)`,
+        opacity: out ? 0 : 1 - Math.min(Math.abs(dx) / 260, 0.6),
+      }}
+      onPointerDown={(e) => {
+        if (out) return;
+        drag.current = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId, moved: false };
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d || d.id !== e.pointerId) return;
+        const dist = e.clientX - d.x;
+        if (Math.abs(dist) > 6) d.moved = true;
+        setDx(dist);
+      }}
+      onPointerUp={(e) => end(e.clientX)}
+      onPointerCancel={() => {
+        drag.current = null;
+        setDx(0);
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function Toasts() {
   const { toasts, dismissToast, t } = useApp();
   const nav = useNavigate();
@@ -194,39 +247,37 @@ export function Toasts() {
     <div className="toast-wrap">
       {toasts.map((x) =>
         x.kind === "push" ? (
-          <button
-            className={`toast push ${x.leaving ? "leaving" : ""}`}
+          <SwipeToast
             key={x.id}
-            onClick={() => {
+            onGone={() => dismissToast(x.id)}
+            onTap={() => {
               dismissToast(x.id);
               nav("/notifications");
             }}
           >
-            <span className="toast-app">
-              <img src="/img/avalin-mark.webp" alt="" />
-            </span>
-            <span className="grow toast-body">
-              <span className="toast-meta">
-                <b>Avalin Cargo</b>
-                <span>{t("just_now")}</span>
+            <div className={`toast push ${x.leaving ? "leaving" : ""}`} role="button">
+              <span className="toast-app">
+                <img src="/img/avalin-mark.webp" alt="" />
               </span>
-              <span className="toast-title">{x.title}</span>
-              <span className="toast-msg">{x.msg}</span>
-            </span>
-            <i className="toast-bar" style={{ animationDuration: "5.2s" }} />
-          </button>
+              <span className="grow toast-body">
+                <span className="toast-meta">
+                  <b>Avalin Cargo</b>
+                  <span>{t("just_now")}</span>
+                </span>
+                <span className="toast-title">{x.title}</span>
+                <span className="toast-msg">{x.msg}</span>
+              </span>
+            </div>
+          </SwipeToast>
         ) : (
-          <div
-            className={`toast ${x.kind === "error" ? "error" : ""} ${x.leaving ? "leaving" : ""}`}
-            key={x.id}
-            onClick={() => dismissToast(x.id)}
-          >
-            <span className="toast-ic">
-              <Icon name={(x.icon as IconName) ?? "check"} size={17} stroke={2.4} />
-            </span>
-            <span className="toast-msg">{x.msg}</span>
-            <i className="toast-bar" />
-          </div>
+          <SwipeToast key={x.id} onGone={() => dismissToast(x.id)}>
+            <div className={`toast ${x.kind === "error" ? "error" : ""} ${x.leaving ? "leaving" : ""}`} role="status">
+              <span className="toast-ic">
+                <Icon name={(x.icon as IconName) ?? "check"} size={17} stroke={2.4} />
+              </span>
+              <span className="toast-msg">{x.msg}</span>
+            </div>
+          </SwipeToast>
         ),
       )}
     </div>

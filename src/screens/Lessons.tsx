@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Icon from "../components/Icon";
 import { Empty, Hero, PageHeader, Sheet } from "../components/UI";
-import { LessonCover } from "../components/Art";
-import { LESSON_CATEGORIES } from "../data";
+import { LESSON_CATEGORIES, MARKETPLACES } from "../data";
 import { useApp } from "../store";
+
+const BRAND_COLORS: Record<string, string> = { pinduoduo: "#E2231A", taobao: "#FF5000", "1688": "#FF6A00" };
 
 export function Lessons() {
   const nav = useNavigate();
@@ -17,29 +18,45 @@ export function Lessons() {
   }, [m, nav]);
 
   return (
-    <div className="scroll fade-in">
+    <div className="scroll ls">
       <PageHeader title={t("lessons")} />
-      <Hero icon="play" title={t("lessons")} sub={t("lessons_sub")} variant="soft-violet" />
+      <Hero icon="play" title={t("lessons")} sub={t("lessons_sub")} />
 
-      <div style={{ height: 14 }} />
-      <div className="stack" style={{ gap: 14 }}>
-        {LESSON_CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            className="news-card"
-            onClick={() => nav(`/lessons/${c.id}`)}
-            style={{ padding: 0 }}
-          >
-            <LessonCover id={c.id} />
-            <div style={{ padding: 14 }}>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>{c.name}</div>
-              <div className="row" style={{ gap: 6, marginTop: 5, fontSize: 13, color: "var(--muted)" }}>
-                <Icon name="play" size={15} />
-                {c.lessons.length} {t("lessons_count")}
+      <div className="ls-list">
+        {LESSON_CATEGORIES.map((c, i) => {
+          const mp = MARKETPLACES.find((x) => x.id === c.marketplace || x.id === c.id);
+          return (
+            <button
+              key={c.id}
+              className="ls-card"
+              style={{ ["--brand" as string]: BRAND_COLORS[c.id] ?? "var(--blue)", animationDelay: `${i * 0.06}s` }}
+              onClick={() => nav(`/lessons/${c.id}`)}
+            >
+              <div className="ls-top">
+                {mp ? <img className="ls-logo" src={mp.logo} alt="" /> : <span className="ls-logo" />}
+                <span className="grow">
+                  <b>{c.name}</b>
+                  <small>
+                    <Icon name="play" size={13} />
+                    {c.lessons.length} {t("lessons_count")}
+                  </small>
+                </span>
+                <span className="ls-go">
+                  <Icon name="play" size={18} />
+                </span>
               </div>
-            </div>
-          </button>
-        ))}
+              <div className="ls-preview">
+                {c.lessons.slice(0, 2).map((l, k) => (
+                  <span key={l.id}>
+                    <i>{k + 1}</i>
+                    <span className="ellipsis">{l.title}</span>
+                    <em>{l.duration}</em>
+                  </span>
+                ))}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
